@@ -79,15 +79,27 @@ def display_segmented_characters(Image_Path):
 
 #A Function to clear label values that displays Network's prediction
 def clear_label_values():
-    x = 600
-    y = 480
+    x = 40
+    y = 180
     for i in range(9):
 
         label_value = "      "
         instructLbl = wx.StaticText(panel, label=label_value, pos=(x, y))
         font = wx.Font(22, wx.DECORATIVE, wx.NORMAL, wx.NORMAL)
         instructLbl.SetFont(font)
-        x += 40
+        x += 45
+
+    # Creating a label to show Message/ one popUp here
+    instructions = '                '
+    instructLbl = wx.StaticText(panel, label=instructions, pos=(40, 50))
+    font = wx.Font(12, wx.DECORATIVE, wx.NORMAL, wx.NORMAL)
+    instructLbl.SetFont(font)
+
+    instructions_toRemove = "                                                                                   "
+    instructLbl = wx.StaticText(panel, label=instructions_toRemove, pos=(40, 80))
+    font = wx.Font(12, wx.DECORATIVE, wx.NORMAL, wx.NORMAL)
+    instructLbl.SetFont(font)
+
 
 def onProcess(event):
 
@@ -109,7 +121,7 @@ def onProcess(event):
 
         #Creating a label to show Message/ one popUp here
         instructions = 'Image Load Success!!'
-        instructLbl = wx.StaticText(panel, label=instructions, pos=(600, 380))
+        instructLbl = wx.StaticText(panel, label=instructions, pos=(40, 50))
         font = wx.Font(12, wx.DECORATIVE, wx.NORMAL, wx.NORMAL)
         instructLbl.SetFont(font)
 
@@ -139,6 +151,7 @@ def onProcess(event):
         print(ex)
         print("Licence Plate Not Found!!")
         # Creating a label to show Message
+
         instructions = "Licence Plate Not Found!!"
         instructLbl = wx.StaticText(panel, label=instructions, pos=(600, 410))
         font = wx.Font(12, wx.DECORATIVE, wx.NORMAL, wx.NORMAL)
@@ -161,6 +174,10 @@ def onProcess(event):
     except Exception as ex:
         print("Error Writing Individual Digits into a new File")
         print(ex)
+        instructions = "Licence Plate Could Not be detected!!"
+        instructLbl = wx.StaticText(panel, label=instructions, pos=(40, 80))
+        font = wx.Font(12, wx.DECORATIVE, wx.NORMAL, wx.NORMAL)
+        instructLbl.SetFont(font)
 
     #Call Function to Display Segmented Characters into the GUI
     try:
@@ -184,7 +201,7 @@ def display_prediction():
     #To Display Label in GUI
     # Text Label
     instructions = 'Network Prediction:'
-    instructLbl = wx.StaticText(panel, label=instructions, pos=(600, 450))
+    instructLbl = wx.StaticText(panel, label=instructions, pos=(40, 140))
     font = wx.Font(14, wx.DECORATIVE, wx.NORMAL, wx.NORMAL)
     instructLbl.SetFont(font)
 
@@ -193,8 +210,8 @@ def display_prediction():
     labels= {0: "0", 1: "1", 2: "2", 3: "3", 4: "4", 5: "5", 6: "6", 7: "7", 8: "8", 9: "9", 10: "BA", 11: "PA"}
 
     # Creating Label to Display Network's Predicted Answers
-    x = 600
-    y = 480
+    x = 40
+    y = 180
 
     for i in range(len(answers)):
 
@@ -204,9 +221,9 @@ def display_prediction():
 
         network_prediction = instructions
         instructLbl = wx.StaticText(panel, label=network_prediction, pos=(x, y))
-        font = wx.Font(22, wx.DECORATIVE, wx.NORMAL, wx.NORMAL)
+        font = wx.Font(23, wx.DECORATIVE, wx.NORMAL, wx.NORMAL)
         instructLbl.SetFont(font)
-        x += 40
+        x += 45
 
 if __name__ == '__main__':
 
@@ -231,49 +248,78 @@ if __name__ == '__main__':
     app = wx.App()
 
     #Create a Frame to Fit all GUI Components inside
-    frame = wx.Frame(None, -1, 'AI Coursework', size=(1050, 700))
+    frame = wx.Frame(None, -1, 'Final Year Project Sarun Dahal 15043018', size=(1920, 1080))
 
     #Creating a panel
     panel = wx.Panel(frame)
 
     # Define a Label inside a panel
-    label = wx.StaticText(panel, label="***Nepali License Plate Recognition System***", pos=(250, 20))
+    label = wx.StaticText(panel, label="***Nepali License Plate Recognition System***", pos=(750, 10))
     font = wx.Font(18, wx.DECORATIVE, wx.NORMAL, wx.NORMAL)
     label.SetFont(font)
 
     #Set Max size for photo
     PhotoMaxSize = 427
 
-    #Create a Bitmap to hold image inside
+    #Creating a Bitmap to hold Raw Input Image inside
     img = wx.Image(320, 427)
-    imageCtrl = wx.StaticBitmap(panel, wx.ID_ANY, wx.Bitmap(img), pos=(50, 100))
+    imageCtrl = wx.StaticBitmap(panel, wx.ID_ANY, wx.Bitmap(img), pos=(40, 260))
 
     # Text Label
     instructions = 'Input Raw Image for Recognition Here!'
-    instructLbl = wx.StaticText(panel, label=instructions, pos=(50, 70))
+    instructLbl = wx.StaticText(panel, label=instructions, pos=(70, 720))
     font = wx.Font(12, wx.DECORATIVE, wx.NORMAL, wx.NORMAL)
     instructLbl.SetFont(font)
 
     #Browse Button Defined Here
-    browseBtn = wx.Button(panel, label='Browse', pos=(50, 600))
+    browseBtn = wx.Button(panel, label='Browse', pos=(40, 760))
     browseBtn.Bind(wx.EVT_BUTTON, onBrowse)
 
     #Path of Input picture is shown through this Textctrl
-    picturePath = wx.TextCtrl(panel, size=(300, -1), pos=(50, 550))
+    picturePath = wx.TextCtrl(panel, size=(320, 30), pos=(40, 800))
 
     #Process Button Defined here
-    processBtn = wx.Button(panel, label='Process', pos=(260, 600))
+    processBtn = wx.Button(panel, label='Process', pos=(40, 870), size = ((320, 100)))
     processBtn.Bind(wx.EVT_BUTTON, onProcess)
 
 
     #Display Segmented Characters
-    instructLbl = wx.StaticText(panel, label='Localized License Plate:', pos=(600, 100))
+    instructLbl = wx.StaticText(panel, label='Localized License Plate:', pos=(1550, 700))
     font = wx.Font(18, wx.DECORATIVE, wx.NORMAL, wx.NORMAL)
     instructLbl.SetFont(font)
 
+    # Creating a Bitmap to hold Segmented License Plate
     img_license_plate = wx.Image(300, 200)
     License_plateImgCtrl = wx.StaticBitmap(panel, wx.ID_ANY,
-                                           wx.Bitmap(img_license_plate), pos=(600, 150))
+                                           wx.Bitmap(img_license_plate), pos=(1550, 750))
+
+    # Creating a Bitmap to hold Pre-processed image 2 inside
+    img_hsv = wx.Image(320, 427)
+    HSV_imageCtrl = wx.StaticBitmap(panel, wx.ID_ANY, wx.Bitmap(img_hsv), pos=(450, 70))
+
+    # Creating a Bitmap to hold Pre-processed image 3 inside
+    img2 = wx.Image(320, 427)
+    img2_imageCtrl = wx.StaticBitmap(panel, wx.ID_ANY, wx.Bitmap(img2), pos=(820, 70))
+
+    # Creating a Bitmap to hold HSV Converted Image inside
+    img3 = wx.Image(320, 427)
+    img3_imageCtrl = wx.StaticBitmap(panel, wx.ID_ANY, wx.Bitmap(img3), pos=(1190, 70))
+
+    # Creating a Bitmap to hold Pre-processed image 4 inside
+    img4 = wx.Image(320, 427)
+    img4_imageCtrl = wx.StaticBitmap(panel, wx.ID_ANY, wx.Bitmap(img4), pos=(1560, 70))
+
+    # Creating a Bitmap to hold Pre-processed image 5 inside
+    img5 = wx.Image(320, 427)
+    img5_imageCtrl = wx.StaticBitmap(panel, wx.ID_ANY, wx.Bitmap(img5), pos=(450, 550))
+
+    # Creating a Bitmap to hold HSV Converted Image inside
+    img6 = wx.Image(320, 427)
+    img6_imageCtrl = wx.StaticBitmap(panel, wx.ID_ANY, wx.Bitmap(img6), pos=(820, 550))
+
+    # Creating a Bitmap to hold Pre-processed image 6 inside
+    img_hsv = wx.Image(320, 427)
+    HSV_imageCtrl = wx.StaticBitmap(panel, wx.ID_ANY, wx.Bitmap(img_hsv), pos=(1190, 550))
 
 
     # To make GUI visible

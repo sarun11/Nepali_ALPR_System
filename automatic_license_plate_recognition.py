@@ -26,7 +26,7 @@ class Alpr:
     Since the project is performed on Private Number plate of  2 Wheelers, 
     Masking is perormed to mask off all colors except the color red from the image
     This process helps reduce computing complexity and also aids in accuracy, 
-    since unwanted parts are not processed at all
+    since unwanted parts are not processed at all!!
     '''
 
     def BGR_to_HSV_conversion(self, bgr_image):
