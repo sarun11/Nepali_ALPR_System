@@ -34,7 +34,7 @@ def onView():
     Width = img.GetWidth()
     Height = img.GetHeight()
 
-    print(Width, Height)
+    print("Width & Height Of Selected Image is: ", Width, Height)
 
     if Width > Height:
         NewWidth = PhotoMaxSize
@@ -76,6 +76,27 @@ def display_segmented_characters(Image_Path):
 
     License_plateImgCtrl.SetBitmap(wx.Bitmap(lp_display))
 
+#Function to Display HSV Converted image into the GUI
+def display_hsv_image(Image_Path):
+
+    img_maxSize = 427
+    image_display = wx.Image(Image_Path, wx.BITMAP_TYPE_ANY)
+
+    # Scale the input image, while preserving the aspect ratio
+    Width = image_display.GetWidth()
+    Height = image_display.GetHeight()
+
+    if Width > Height:
+        NewWidth = img_maxSize
+        NewHeight = img_maxSize * Height / Width
+
+    else:
+        NewHeight = img_maxSize
+        NewWidth = img_maxSize * Width / Height
+
+        image_display = image_display.Scale(NewWidth, NewHeight)
+
+    HSV_imageCtrl.SetBitmap(wx.Bitmap(image_display))
 
 #A Function to clear label values that displays Network's prediction
 def clear_label_values():
@@ -106,7 +127,7 @@ def onProcess(event):
     '''Functionality Code here'''
 
     imgPath= onView()
-    print(imgPath)
+    print("Selected Image's path is: ", imgPath)
     serial_no=1
 
     # Instantiating the class
@@ -114,6 +135,14 @@ def onProcess(event):
 
     #A Function to clear label values that displays Network's prediction
     clear_label_values()
+
+    #Calling A method to Create Folder into the Working directory
+    try:
+        process.CreateFolder()
+    except Exception as ex:
+        print(ex)
+        print("ERROR!! Folder Could Not Be created!!")
+        print("")
 
     # Reading the input image for further processing
     try:
@@ -137,6 +166,19 @@ def onProcess(event):
     # Converting to HSV format and masking off colors other than the Color Red
     hsv_image = process.BGR_to_HSV_conversion(input_image)
 
+    #Writing HSV Masked image into the folder for displaying in the GUI
+    '''
+    try:
+        # Writing such localized license plate into a New Image file
+        imageName= 'HSV_masked_image' + ".png"
+        process.writeImage(hsv_image, imageName)
+        print("HSV Image written")
+
+    except Exception as ex:#one pop up here
+        print("Error Writing HSV Masked Image into new File!!!")
+        print(ex)
+    '''
+
     # Pre-processing the HSV image to reduce noise
     preprocessed_image = process.preprocessing(hsv_image)
 
@@ -157,10 +199,10 @@ def onProcess(event):
         font = wx.Font(12, wx.DECORATIVE, wx.NORMAL, wx.NORMAL)
         instructLbl.SetFont(font)
 
-
     try:
         # Writing such localized license plate into a New Image file
-        process.writeImage(lp, serial_no)
+        imageName= 'localized_plate' + ".png"
+        process.writeImage(lp, imageName)
         #serial_no+=1
 
     except Exception as ex:#one pop up here
@@ -179,9 +221,27 @@ def onProcess(event):
         font = wx.Font(12, wx.DECORATIVE, wx.NORMAL, wx.NORMAL)
         instructLbl.SetFont(font)
 
+
+    # Calling a Method to Copy Image files to Utitity Folder
+    try:
+        copyImages()
+    except Exception as ex:
+        print("Cannot Copy Images to the Utility Folder")
+        print(ex)
+
+    #Call a Function to Display HSV COnverted Image into the GUI
+    try:
+        HSV_image_Path = process.img_path_HSV_Masked_image
+        display_hsv_image(HSV_image_Path)
+
+    except Exception as ex:
+        print(ex)
+        print("Cannot Load HSV Masked image into the GUI")
+
+
     #Call Function to Display Segmented Characters into the GUI
     try:
-        Image_Path = process.img_path
+        Image_Path = process.img_path_lp_with_segmented_characters
         display_segmented_characters(Image_Path)
 
     except Exception as ex:
@@ -225,6 +285,10 @@ def display_prediction():
         instructLbl.SetFont(font)
         x += 45
 
+#A Utility method to copy files into the Bike folder
+def copyImages():
+    shutil.move( os.path.join(sys.path[0],"HSV_masked_image.png"), os.path.join(os.getcwd(),"HSV_masked_image.png"))
+
 if __name__ == '__main__':
 
     '''Since a part of the process is such that
@@ -232,15 +296,6 @@ if __name__ == '__main__':
     we need to Delete the folder that stores images and digits in the first place IN CASES where this 
     script is already run before, and thus a folder is already created'''
 
-    foldername = 'bike'
-    current_path = sys.path[0]
-    os.chdir(current_path)
-
-
-    if (os.path.isdir(foldername)):
-        shutil.rmtree(foldername)
-    else:
-        os.makedirs(os.path.join(current_path,foldername))
 
     '''GUI part here'''
     imgPath=""
@@ -284,18 +339,18 @@ if __name__ == '__main__':
 
 
     #Display Segmented Characters
-    instructLbl = wx.StaticText(panel, label='Localized License Plate:', pos=(1550, 700))
+    instructLbl = wx.StaticText(panel, label='Localized License Plate:', pos=(1590, 700))
     font = wx.Font(18, wx.DECORATIVE, wx.NORMAL, wx.NORMAL)
     instructLbl.SetFont(font)
 
     # Creating a Bitmap to hold Segmented License Plate
     img_license_plate = wx.Image(300, 200)
-    License_plateImgCtrl = wx.StaticBitmap(panel, wx.ID_ANY,
-                                           wx.Bitmap(img_license_plate), pos=(1550, 750))
+    License_plateImgCtrl = wx.StaticBitmap(panel, wx.ID_ANY, wx.Bitmap(img_license_plate), pos=(1570, 775))
 
     # Creating a Bitmap to hold Pre-processed image 2 inside
     img_hsv = wx.Image(320, 427)
     HSV_imageCtrl = wx.StaticBitmap(panel, wx.ID_ANY, wx.Bitmap(img_hsv), pos=(450, 70))
+
 
     # Creating a Bitmap to hold Pre-processed image 3 inside
     img2 = wx.Image(320, 427)
@@ -318,8 +373,8 @@ if __name__ == '__main__':
     img6_imageCtrl = wx.StaticBitmap(panel, wx.ID_ANY, wx.Bitmap(img6), pos=(820, 550))
 
     # Creating a Bitmap to hold Pre-processed image 6 inside
-    img_hsv = wx.Image(320, 427)
-    HSV_imageCtrl = wx.StaticBitmap(panel, wx.ID_ANY, wx.Bitmap(img_hsv), pos=(1190, 550))
+    img_7 = wx.Image(320, 427)
+    img7_imageCtrl = wx.StaticBitmap(panel, wx.ID_ANY, wx.Bitmap(img_hsv), pos=(1190, 550))
 
 
     # To make GUI visible

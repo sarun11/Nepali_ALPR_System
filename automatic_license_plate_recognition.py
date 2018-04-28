@@ -6,6 +6,7 @@ import shutil
 
 class Alpr:
 
+
     def __init__(self, image_name):
 
         self.image_name = image_name
@@ -13,7 +14,22 @@ class Alpr:
         # Loading Image from drive
         self.image = cv2.imread(self.image_name)
 
-        self.img_path= None
+        #Define images to be shown in the GUI Interface
+        self.img_path_lp_with_segmented_characters= None
+        self.img_path_HSV_Masked_image = None
+
+    #A Method That Creates a Folder Into the Current Working Directory to save images
+    def CreateFolder(self):
+
+        foldername = 'bike'
+        current_path = sys.path[0]
+        os.chdir(current_path)
+
+        if (os.path.isdir(foldername)):
+            shutil.rmtree(foldername)
+        else:
+            os.makedirs(os.path.join(current_path, foldername))
+
 
     # Loading input image
     def image_load(self):
@@ -53,7 +69,16 @@ class Alpr:
         output_hsv = image_hsv.copy()
         output_hsv[np.where(mask == 0)] = 0
 
+        # Saving the image that shows HSV Masked Image (to be shown to the GUI
+        path= os.path.join(os.getcwd(), 'HSV_masked_image' + '.png')
+        print("Path IS: ", path)
+        cv2.imwrite(path, output_hsv)
+        hsv_path= os.path.join(os.getcwd(),'bike','HSV_masked_image' + '.png')
+        self.img_path_HSV_Masked_image = hsv_path
+        print("HSV PATH IS: ", hsv_path)
+
         return output_hsv
+
 
     '''
     After color masking, the image is preprocessed to remove unnecessary noises
@@ -252,7 +277,7 @@ class Alpr:
         list_of_labels = []
 
         for label in range(num_labels):
-            print("a=", a)
+            #print("a=", a)
             a += 1
 
             connectedComponentWidth = labelStats[label, cv2.CC_STAT_WIDTH]
@@ -278,9 +303,9 @@ class Alpr:
                 continue
 
             # For Testing Purposes
-            print("label no:", label)
-            print("label stats:", labelStats[label])
-            print("count:", count)
+            #print("label no:", label)
+            #print("label stats:", labelStats[label])
+            #print("count:", count)
 
             x, y, w, h, size = labelStats[label]
             
@@ -301,8 +326,8 @@ class Alpr:
         # Find mean Y for segregation of Digits into 2 columns of Y
         #median_Y = np.median(np.asarray(y_list))
         mean_Y= sum(y_list)/ len(y_list)
-        print("Y list is: ", y_list)
-        print("Mean y is", mean_Y)
+        #print("Y list is: ", y_list)
+        #print("Mean y is", mean_Y)
 
         #Declare Lists to store Stats baed on whether the digit lies in the upper line or lower line
         upperLineDigits = []
@@ -317,10 +342,10 @@ class Alpr:
         
         #Now After segregating the digits as Digit in upper line or lower line, sorting each line based on x
         upperLineDigits.sort(key=lambda x: x[0])
-        print("Sorted: ", upperLineDigits)
+        #print("Sorted: ", upperLineDigits)
 
         lowerLineDigits.sort(key=lambda x: x[0])
-        print("Sorted lower: ", lowerLineDigits)
+        #print("Sorted lower: ", lowerLineDigits)
 
         #Now, define Path to store each digit into a new File
 
@@ -416,16 +441,16 @@ class Alpr:
 
         #Saving the image that shows segregation of characters (to be shown to the GUI)
         folderPath= os.path.join(folder_path,foldername)
-        imageName= "Image_to_display" + ".png"
-        image_path = os.path.join(folderPath, imageName)
+        imageName= "lp_with_segmented_characters" + ".png"
+        lp_with_segmented_characters_image_path = os.path.join(folderPath, imageName)
         #print("Image to Display path is: ", image_path)
-        cv2.imwrite(image_path, img)
+        cv2.imwrite(lp_with_segmented_characters_image_path, img)
+        self.img_path_lp_with_segmented_characters= lp_with_segmented_characters_image_path
 
-        self.img_path= image_path
 
-    
+
     # Create Individual Directory for each Picture and write the image into it
-    def writeImage(self, image, serial_no):
+    def writeImage(self, image, imgName):
 
         foldername = 'bike'
         path = sys.path[0]
@@ -438,8 +463,8 @@ class Alpr:
 
         # Writing the Image into a File
         os.chdir(os.path.join(path, foldername))
-        imgName = 'localized_plate' + ".png"
+        #imgName = 'localized_plate' + ".png"
         folderPath= os.path.join(path,foldername)
         file_name = os.path.join(folderPath,imgName)
-        # print(file_name)
+        print("Filename IS: ", file_name)
         cv2.imwrite(file_name, image)
