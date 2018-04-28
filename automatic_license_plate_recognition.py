@@ -6,7 +6,6 @@ import shutil
 
 class Alpr:
 
-
     def __init__(self, image_name):
 
         self.image_name = image_name
@@ -17,6 +16,12 @@ class Alpr:
         #Define images to be shown in the GUI Interface
         self.img_path_lp_with_segmented_characters= None
         self.img_path_HSV_Masked_image = None
+        self.img_path_thresholded_image= None
+        self.img_path_total_contours = None
+        self.img_path_lp_masked= None
+        self.img_path_contours= None
+        self.img_path_skewed_lp = None
+        self.img_path_deSkewed_lp = None
 
     #A Method That Creates a Folder Into the Current Working Directory to save images
     def CreateFolder(self):
@@ -29,7 +34,6 @@ class Alpr:
             shutil.rmtree(foldername)
         else:
             os.makedirs(os.path.join(current_path, foldername))
-
 
     # Loading input image
     def image_load(self):
@@ -71,14 +75,11 @@ class Alpr:
 
         # Saving the image that shows HSV Masked Image (to be shown to the GUI
         path= os.path.join(os.getcwd(), 'HSV_masked_image' + '.png')
-        print("Path IS: ", path)
         cv2.imwrite(path, output_hsv)
         hsv_path= os.path.join(os.getcwd(),'bike','HSV_masked_image' + '.png')
         self.img_path_HSV_Masked_image = hsv_path
-        print("HSV PATH IS: ", hsv_path)
 
         return output_hsv
-
 
     '''
     After color masking, the image is preprocessed to remove unnecessary noises
@@ -111,6 +112,12 @@ class Alpr:
         # Conversion to Binary (Thresholding using Ostu's Binarization)
         ret, thresholded = cv2.threshold(thresh4, 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)
 
+        # Saving the image that shows Thresholded Image (to be shown to the GUI)
+        path = os.path.join(os.getcwd(), 'thresholded_image' + '.png')
+        cv2.imwrite(path, thresholded)
+        thresholded_path = os.path.join(os.getcwd(), 'bike', 'thresholded_image' + '.png')
+        self.img_path_thresholded_image = thresholded_path
+
         return thresholded
 
     '''
@@ -124,13 +131,23 @@ class Alpr:
         # Finding the total Contours in the image
         _, contours, _ = cv2.findContours(image, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
 
+        # Drawing Total Contours on Image
+        image1=self.image.copy()
+        cv2.drawContours(image1, contours, -1, (0, 255, 0), 6)
+
+        # Saving the image that shows Total Contours Found (to be shown to the GUI
+        path = os.path.join(os.getcwd(), 'total_contours_image' + '.png')
+        cv2.imwrite(path, image1)
+        total_contours_path = os.path.join(os.getcwd(), 'bike', 'total_contours_image' + '.png')
+        self.img_path_total_contours = total_contours_path
+
         # Testing
         print("No. of contours detected -> %d " % len(contours))
 
         # Sorting contours as per area, Only the biggest 10 selected for further processing
-        contours = sorted(contours, key=cv2.contourArea, reverse=True)[:10]
+        sorted_contours = sorted(contours, key=cv2.contourArea, reverse=True)[:10]
 
-        return contours
+        return sorted_contours
 
     '''
     Localization of the License plate.
@@ -165,13 +182,24 @@ class Alpr:
 
                     print("asp ratio ->", aspect_ratio)
                     screen_contours = approx
+
+                    # Drawing Total Contours on Image
+                    image1 = self.image.copy()
+                    cv2.drawContours(image1, [box], -1, (0, 255, 0), 20)
+
+                    # Saving the image that shows Total Contours Found (to be shown to the GUI
+                    path = os.path.join(os.getcwd(), 'contours_image' + '.png')
+                    cv2.imwrite(path, image1)
+                    contours_path = os.path.join(os.getcwd(), 'bike', 'contours_image' + '.png')
+                    self.img_path_contours = contours_path
+
                     break
 
         # If Found draw Contours on image, else display Error Message
         if (screen_contours is not None):
 
             # Drawing Contours on Image
-            # cv2.drawContours(image,[screen_contours],-1,(255,255,255), 3)
+            #cv2.drawContours(image,[screen_contours],-1,(255,255,255), 3)
             cv2.drawContours(image, [box], -1, (0, 255, 0), 3)
 
             # Masking the other parts of the picture other than the number plate
@@ -187,12 +215,27 @@ class Alpr:
             # cv2.resizeWindow('Plate', 960, 960)
             # cv2.imshow('Plate', new_image)
 
+            # Saving the image that shows License Plate Masked Image (to be shown to the GUI
+            path = os.path.join(os.getcwd(), 'lp_masked_image' + '.png')
+            cv2.imwrite(path, new_image)
+            license_plate_masked_image_path = os.path.join(os.getcwd(), 'bike', 'lp_masked_image' + '.png')
+            self.img_path_lp_masked = license_plate_masked_image_path
+
             '''
             Cropping License Plates region as per the co-ordinates of the Bounding Box rectangle so calculated
             During Aspect Ratio Profiling
             '''
             x, y, w, h = cv2.boundingRect(box)
             roi = new_image[y:y + h, x:x + w]
+
+            image_new = self.image.copy()
+            roi_color = image_new[y:y + h, x:x + w]
+
+            # Saving the image that shows skewed License Plate (to be shown to the GUI)
+            path = os.path.join(os.getcwd(), 'lp_skewed' + '.png')
+            cv2.imwrite(path, roi_color)
+            lp_skewed_image_path = os.path.join(os.getcwd(), 'bike', 'lp_skewed' + '.png')
+            self.img_path_skewed_lp = lp_skewed_image_path
 
             # Deskewing the image
             # roi_gray = cv2.cvtColor(roi, cv2.COLOR_BGR2GRAY)
@@ -211,6 +254,14 @@ class Alpr:
             rotated = cv2.warpAffine(roi, M, (w, h),
                                      flags=cv2.INTER_CUBIC, borderMode=cv2.BORDER_REPLICATE)
 
+            rotated_color = cv2.warpAffine(roi_color, M, (w, h),
+                                     flags=cv2.INTER_CUBIC, borderMode=cv2.BORDER_REPLICATE)
+
+            # Saving the image that shows Deskewed License Plate (to be shown to the GUI)
+            path = os.path.join(os.getcwd(), 'lp_deSkewed' + '.png')
+            cv2.imwrite(path, rotated_color)
+            lp_deSkewed_image_path = os.path.join(os.getcwd(), 'bike', 'lp_deSkewed' + '.png')
+            self.img_path_deSkewed_lp = lp_deSkewed_image_path
 
             return rotated
 
@@ -353,7 +404,6 @@ class Alpr:
         folder_path = sys.path[0]
         os.chdir(os.path.join(folder_path, foldername))
         file_path = os.path.join(folder_path, foldername)
-        print("Content Folder path is: ", file_path)
 
         # Sometimes the Pins are also categoried as digits, in such a case we filter by height again
         heights=[]
@@ -443,7 +493,6 @@ class Alpr:
         folderPath= os.path.join(folder_path,foldername)
         imageName= "lp_with_segmented_characters" + ".png"
         lp_with_segmented_characters_image_path = os.path.join(folderPath, imageName)
-        #print("Image to Display path is: ", image_path)
         cv2.imwrite(lp_with_segmented_characters_image_path, img)
         self.img_path_lp_with_segmented_characters= lp_with_segmented_characters_image_path
 
@@ -466,5 +515,4 @@ class Alpr:
         #imgName = 'localized_plate' + ".png"
         folderPath= os.path.join(path,foldername)
         file_name = os.path.join(folderPath,imgName)
-        print("Filename IS: ", file_name)
         cv2.imwrite(file_name, image)
